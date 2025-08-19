@@ -14,7 +14,6 @@ pipeline {
                 sh 'mvn clean install'
             }
         }
-        
         stage('Deploy to Tomcat') {
             steps {
                 sh 'sudo cp /var/lib/jenkins/workspace/job1/target/hello-1.0.war /home/ubuntu/apache-tomcat-9.0.108/webapps'
