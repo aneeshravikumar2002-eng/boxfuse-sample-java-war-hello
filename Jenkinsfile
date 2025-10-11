@@ -15,20 +15,16 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+         stage('SonarQube Analysis') {
             steps {
                 echo 'Running SonarQube analysis...'
                 withSonarQubeEnv('My SonarQube Server') {
-                    script {
-                        def scannerHome = tool 'SonarScanner'
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                                -Dsonar.projectKey=flask-sonar \
-                                -Dsonar.projectName=flask-sonar \
-                                -Dsonar.sources=. \
-                                -Dsonar.login=${SONAR_TOKEN_CRED} \
-                                -Dsonar.host.url=$SONAR_HOST_URL \
-                                -Dsonar.python.version=3.10
+                    sh """
+                        mvn sonar:sonar \
+                            -Dsonar.projectKey=flask-sonar \
+                            -Dsonar.projectName=flask-sonar \
+                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.login=${SONAR_TOKEN_CRED}
                         """
                     }
                 }
