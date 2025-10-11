@@ -23,7 +23,7 @@ pipeline {
                     def mvnHome = tool name: 'Default Maven', type: 'maven'
 
                     // 'MySonarQube' should be replaced with your SonarQube installation name in Jenkins
-                    withSonarQubeEnv('MySonarQube') {
+                    withSonarQubeEnv('My SonarQube Server') {
                         sh "${mvnHome}/bin/mvn clean verify sonar:sonar " +
                            "-Dsonar.projectKey=box-sonar " +
                            "-Dsonar.projectName='box-sonar'"
