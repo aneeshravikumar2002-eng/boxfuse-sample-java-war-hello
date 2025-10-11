@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CRED = credentials('dockerhub-login')      // Docker Hub credentials
-        SONAR_TOKEN_CRED = credentials('sonar-token')         // SonarQube token credential
+        DOCKERHUB_CRED   = credentials('dockerhub-login')   // Docker Hub credentials
+        SONAR_TOKEN_CRED = credentials('sonar-token')      // SonarQube token credential
     }
-    
+
     stages {
 
         stage('Checkout Code') {
@@ -15,7 +15,7 @@ pipeline {
             }
         }
 
-         stage('SonarQube Analysis') {
+        stage('SonarQube Analysis') {
             steps {
                 echo 'Running SonarQube analysis...'
                 withSonarQubeEnv('My SonarQube Server') {
@@ -25,18 +25,17 @@ pipeline {
                             -Dsonar.projectName=flask-sonar \
                             -Dsonar.host.url=${SONAR_HOST_URL} \
                             -Dsonar.login=${SONAR_TOKEN_CRED}
-                        """
-                    }
+                    """
                 }
             }
         }
+
         stage('Build WAR') {
             steps {
                 echo 'Building the WAR package...'
                 sh 'mvn clean package -DskipTests'
+            }
         }
-    }
-
 
         stage('Build Docker Image') {
             steps {
@@ -61,7 +60,7 @@ pipeline {
 
         stage('Push to Docker Hub') {
             steps {
-                echo '☁️ Pushing image to Docker Hub...'
+                echo 'Pushing image to Docker Hub...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh """
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
@@ -72,6 +71,7 @@ pipeline {
                 }
             }
         }
+
     }
 
     post {
