@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo 'Checking out repository...'
-                git branch: 'main', url: 'https://github.com/aneeshravikumar2002-eng/FlaskApp-withDbConnect.git'
+                git branch: 'main', url: 'https://github.com/aneeshravikumar2002-eng/boxfuse-sample-java-war-hello.git'
             }
         }
 
@@ -37,8 +37,8 @@ pipeline {
             steps {
                 echo 'Building Docker image...'
                 sh """
-                    docker build -t aneesh292002/flask-app:${BUILD_NUMBER} \
-                                 -t aneesh292002/flask-app:latest .
+                    docker build -t aneesh292002/box-app:${BUILD_NUMBER} \
+                                 -t aneesh292002/box-app:latest .
                 """
             }
         }
@@ -47,9 +47,9 @@ pipeline {
             steps {
                 echo 'Running Docker container...'
                 sh """
-                    docker stop flask-container || true
-                    docker rm flask-container || true
-                    docker run -d --name flask-container -p 5001:5000 aneesh292002/flask-app:latest
+                    docker stop box-app || true
+                    docker rm box-app || true
+                    docker run -d --name box-app -p 5002:5000 aneesh292002/box-app:latest
                 """
             }
         }
@@ -60,8 +60,8 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh """
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push aneesh292002/flask-app:${BUILD_NUMBER}
-                        docker push aneesh292002/flask-app:latest
+                        docker push aneesh292002/box-app:${BUILD_NUMBER}
+                        docker push aneesh292002/box-app:latest
                         docker logout
                     """
                 }
