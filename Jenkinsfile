@@ -24,7 +24,8 @@ pipeline {
                             -Dsonar.projectKey=flask-sonar \
                             -Dsonar.projectName=flask-sonar \
                             -Dsonar.host.url=${SONAR_HOST_URL} \
-                            -Dsonar.login=${SONAR_TOKEN_CRED}
+                            -Dsonar.login=${SONAR_TOKEN_CRED} \
+                            -Dsonar.java.binaries=target/classes
                     """
                 }
             }
