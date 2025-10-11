@@ -18,15 +18,9 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo 'Running SonarQube analysis...'
-                withSonarQubeEnv('My SonarQube Server') {
-                    sh """
-                        mvn clean verify sonar:sonar \
-                            -Dsonar.projectKey=flask-sonar \
-                            -Dsonar.projectName=flask-sonar \
-                            -Dsonar.host.url=${SONAR_HOST_URL} \
-                            -Dsonar.login=${SONAR_TOKEN_CRED} \
-                            -Dsonar.java.binaries=target/classes
-                    """
+                def mvn = tool 'Default Maven'
+                withSonarQubeEnv() {
+                    sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=box-sonar -Dsonar.projectName='box-sonar'"
                 }
             }
         }
@@ -83,5 +77,4 @@ pipeline {
         }
     }
 }
-
 
