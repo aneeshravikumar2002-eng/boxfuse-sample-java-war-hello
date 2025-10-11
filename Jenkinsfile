@@ -2,9 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CRED   = credentials('dockerhub-login')   // Docker Hub credentials
-        SONAR_TOKEN_CRED = credentials('sonar-token')      // SonarQube token credential
-        SONAR_HOST_URL   = 'http://13.126.80.41:9000/' // Replace with your SonarQube URL
+        DOCKERHUB_CRED = credentials('dockerhub-login')  // Docker Hub credentials
     }
 
     stages {
@@ -16,18 +14,29 @@ pipeline {
             }
         }
 
-        stage('Build & SonarQube Analysis') {
+        stage('SonarQube Analysis') {
             steps {
-                echo 'Building WAR and running SonarQube analysis...'
-                sh """
-                docker run --rm -v $WORKSPACE:/usr/src/mymaven -w /usr/src/mymaven maven:3.9.2-openjdk-17 bash -c \\
-                "mvn clean verify sonar:sonar \\
-                    -Dsonar.projectKey=flask-sonar \\
-                    -Dsonar.projectName=flask-sonar \\
-                    -Dsonar.host.url=${SONAR_HOST_URL} \\
-                    -Dsonar.login=${SONAR_TOKEN_CRED} \\
-                    -Dsonar.java.binaries=target/classes"
-                """
+                echo 'Running SonarQube analysis...'
+                withSonarQubeEnv('My SonarQube Server') {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh """
+                            docker run --rm -v $WORKSPACE:/usr/src/mymaven -w /usr/src/mymaven maven:3.8.6-openjdk-17 bash -c \\
+                            "mvn clean verify sonar:sonar \\
+                                -Dsonar.projectKey=flask-sonar \\
+                                -Dsonar.projectName=flask-sonar \\
+                                -Dsonar.host.url=${SONAR_HOST_URL} \\
+                                -Dsonar.login=${SONAR_TOKEN} \\
+                                -Dsonar.java.binaries=target/classes"
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Build WAR') {
+            steps {
+                echo 'Building the WAR package...'
+                sh 'docker run --rm -v $WORKSPACE:/usr/src/mymaven -w /usr/src/mymaven maven:3.8.6-openjdk-17 bash -c "mvn clean package -DskipTests"'
             }
         }
 
@@ -76,4 +85,5 @@ pipeline {
         }
     }
 }
+
 
