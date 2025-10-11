@@ -34,6 +34,13 @@ pipeline {
                 }
             }
         }
+        stage('Build WAR') {
+            steps {
+                echo 'Building the WAR package...'
+                sh 'mvn clean package -DskipTests'
+        }
+    }
+
 
         stage('Build Docker Image') {
             steps {
