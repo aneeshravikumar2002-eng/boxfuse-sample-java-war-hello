@@ -18,9 +18,16 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo 'Running SonarQube analysis...'
-                def mvn = tool 'Default Maven'
-                withSonarQubeEnv() {
-                    sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=box-sonar -Dsonar.projectName='box-sonar'"
+                script {
+                    // Use the Maven installation configured in Jenkins
+                    def mvnHome = tool name: 'Default Maven', type: 'maven'
+
+                    // 'MySonarQube' should be replaced with your SonarQube installation name in Jenkins
+                    withSonarQubeEnv('MySonarQube') {
+                        sh "${mvnHome}/bin/mvn clean verify sonar:sonar " +
+                           "-Dsonar.projectKey=box-sonar " +
+                           "-Dsonar.projectName='box-sonar'"
+                    }
                 }
             }
         }
