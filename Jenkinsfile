@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CRED = credentials('dockerhub-login')  // Docker Hub credentials
+        SONAR_TOKEN_CRED = credentials('sonar-token')    // SonarQube token
     }
 
     stages {
@@ -16,19 +17,15 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                echo 'Running SonarQube analysis...'
                 withSonarQubeEnv('My SonarQube Server') {
-                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                        sh """
-                            docker run --rm -v $WORKSPACE:/usr/src/mymaven -w /usr/src/mymaven maven:3.8.6-openjdk-17 bash -c \\
-                            "mvn clean verify sonar:sonar \\
-                                -Dsonar.projectKey=flask-sonar \\
-                                -Dsonar.projectName=flask-sonar \\
-                                -Dsonar.host.url=${SONAR_HOST_URL} \\
-                                -Dsonar.login=${SONAR_TOKEN} \\
-                                -Dsonar.java.binaries=target/classes"
-                        """
-                    }
+                    sh """
+                        mvn clean verify sonar:sonar \
+                            -Dsonar.projectKey=flask-sonar \
+                            -Dsonar.projectName=flask-sonar \
+                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.login=${SONAR_TOKEN_CRED} \
+                            -Dsonar.java.binaries=target/classes
+                    """
                 }
             }
         }
@@ -74,6 +71,7 @@ pipeline {
                 }
             }
         }
+
     }
 
     post {
