@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CRED = credentials('dockerhub-login')  // Docker Hub credentials
-        SONAR_TOKEN_CRED = credentials('sonar-token')    // SonarQube token
+        DOCKERHUB_CRED   = credentials('dockerhub-login')   // Docker Hub credentials
+        SONAR_TOKEN_CRED = credentials('sonar-token')       // SonarQube token
     }
 
     stages {
@@ -17,6 +17,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
+                echo 'Running SonarQube analysis...'
                 withSonarQubeEnv('My SonarQube Server') {
                     sh """
                         mvn clean verify sonar:sonar \
@@ -33,7 +34,7 @@ pipeline {
         stage('Build WAR') {
             steps {
                 echo 'Building the WAR package...'
-                sh 'docker run --rm -v $WORKSPACE:/usr/src/mymaven -w /usr/src/mymaven maven:3.8.6-openjdk-17 bash -c "mvn clean package -DskipTests"'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
@@ -71,7 +72,6 @@ pipeline {
                 }
             }
         }
-
     }
 
     post {
