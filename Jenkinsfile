@@ -5,12 +5,7 @@ pipeline {
         DOCKERHUB_CRED = credentials('dockerhub-login')      // Docker Hub credentials
         SONAR_TOKEN_CRED = credentials('sonar-token')         // SonarQube token credential
     }
-
-    tools {
-        // Optional if you use Maven for build
-        // maven 'Default Maven'
-    }
-
+    
     stages {
 
         stage('Checkout Code') {
