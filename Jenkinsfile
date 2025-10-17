@@ -3,12 +3,11 @@ pipeline {
 
     environment {
         DOCKERHUB_CRED   = credentials('dockerhub-login')   // Docker Hub credentials
-        SONAR_TOKEN_CRED = credentials('sonar-token')       // SonarQube token
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('git clone') {
             steps {
                 echo 'Checking out repository...'
                 git branch: 'main', url: 'https://github.com/aneeshravikumar2002-eng/boxfuse-sample-java-war-hello.git'
@@ -17,15 +16,11 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                echo 'Running SonarQube analysis...'
                 script {
-                    // Use the Maven installation configured in Jenkins
-                    def mvnHome = tool name: 'Default Maven', type: 'maven'
-
-                    // 'MySonarQube' should be replaced with your SonarQube installation name in Jenkins
+                    def mvn = tool 'Default Maven'
                     withSonarQubeEnv('My SonarQube Server') {
-                        sh "${mvnHome}/bin/mvn clean verify sonar:sonar " +
-                           "-Dsonar.projectKey=box-sonar " +
+                        sh "${mvn}/bin/mvn clean verify sonar:sonar " +
+                           "-Dsonar.projectKey=box-sonar " 
                            "-Dsonar.projectName='box-sonar'"
                     }
                 }
