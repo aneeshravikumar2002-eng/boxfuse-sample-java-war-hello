@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CRED   = credentials('dockerhub-login')  
+        DOCKERHUB_CRED = credentials('dockerhub-login')
     }
 
     stages {
@@ -19,9 +19,11 @@ pipeline {
                 script {
                     def mvn = tool 'Default Maven'
                     withSonarQubeEnv('My SonarQube Server') {
-                        sh "${mvn}/bin/mvn clean verify sonar:sonar " 
-                           "-Dsonar.projectKey=box-sonar " 
-                           "-Dsonar.projectName='box-sonar'"
+                        sh """
+                            ${mvn}/bin/mvn clean verify sonar:sonar \
+                            -Dsonar.projectKey=box-sonar \
+                            -Dsonar.projectName='box-sonar'
+                        """
                     }
                 }
             }
@@ -31,17 +33,6 @@ pipeline {
             steps {
                 echo 'Building the WAR package...'
                 sh 'mvn clean package -DskipTests'
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
-                echo 'Running Docker container...'
-                sh """
-                    docker stop box-app || true
-                    docker rm box-app || true
-                    docker run -d --name box-app -p 5002:5000 aneesh292002/box-app:latest
-                """
             }
         }
 
@@ -58,8 +49,8 @@ pipeline {
                 }
             }
         }
-    }
-    stage('Deploy to Kubernetes') {
+
+        stage('Deploy to Kubernetes') {
             steps {
                 echo 'Deploying to Kubernetes...'
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
