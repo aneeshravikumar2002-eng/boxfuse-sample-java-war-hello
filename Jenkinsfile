@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CRED = 'dockerhub-login'
+        DOCKERHUB_CRED   = credentials('dockerhub-login')  
     }
 
     stages {
 
-        stage('Git Clone') {
+        stage('git clone') {
             steps {
                 echo 'Checking out repository...'
                 git branch: 'main', url: 'https://github.com/aneeshravikumar2002-eng/boxfuse-sample-java-war-hello.git'
@@ -17,45 +17,49 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    def scannerHome = tool 'SonarScanner'
+                    def mvn = tool 'Default Maven'
                     withSonarQubeEnv('My SonarQube Server') {
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=boxfuse \
-                            -Dsonar.projectName='BoxFuse App' \
-                            -Dsonar.sources=.
-                        """
+                        sh "${mvn}/bin/mvn clean verify sonar:sonar " 
+                           "-Dsonar.projectKey=box-sonar " 
+                           "-Dsonar.projectName='box-sonar'"
                     }
                 }
             }
         }
 
+        stage('Build WAR') {
+            steps {
+                echo 'Building the WAR package...'
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
         stage('Run Docker Container') {
             steps {
-                echo 'Running Docker container locally for verification...'
-                sh '''
-                    docker stop beautiful-flask-container || true
-                    docker rm beautiful-flask-container || true
-                    docker run -d --name beautiful-flask-container -p 5000:5000 aneesh292002/beautiful-flask-app:latest
-                '''
+                echo 'Running Docker container...'
+                sh """
+                    docker stop box-app || true
+                    docker rm box-app || true
+                    docker run -d --name box-app -p 5002:5000 aneesh292002/box-app:latest
+                """
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
                 echo 'Pushing image to Docker Hub...'
-                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CRED}", usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
-                    sh '''
-                        echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-                        docker push aneesh292002/beautiful-flask-app:${BUILD_NUMBER}
-                        docker push aneesh292002/beautiful-flask-app:latest
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push aneesh292002/box-app:${BUILD_NUMBER}
+                        docker push aneesh292002/box-app:latest
                         docker logout
-                    '''
+                    """
                 }
             }
         }
-
-        stage('Deploy to Kubernetes') {
+    }
+    stage('Deploy to Kubernetes') {
             steps {
                 echo 'Deploying to Kubernetes...'
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
@@ -71,7 +75,7 @@ pipeline {
 
     post {
         failure {
-            echo 'Build failed. Keeping Docker artifacts for debugging.'
+            echo 'Build failed. Check logs for details.'
         }
         success {
             echo 'Pipeline completed successfully!'
