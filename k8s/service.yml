@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: box-app-service
+  labels:
+    app: box-app
+spec:
+  selector:
+    app: box-app
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: LoadBalancer
