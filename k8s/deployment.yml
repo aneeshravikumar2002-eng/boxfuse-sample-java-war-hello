@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: box-app-deployment
+  labels:
+    app: box-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: box-app
+  template:
+    metadata:
+      labels:
+        app: box-app
+    spec:
+      containers:
+        - name: box-app
+          image: aneesh292002/box-app:latest
+          ports:
+            - containerPort: 5000
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+      imagePullSecrets:
+        - name: dockerhub-secret
